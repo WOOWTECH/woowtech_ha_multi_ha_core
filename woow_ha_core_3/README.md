@@ -14,7 +14,7 @@ Runs an isolated **Home Assistant Core** instance inside Home Assistant (instanc
 3. Complete the Home Assistant onboarding for this instance.
 
 Its configuration lives in the add-on's private `/data` partition and is fully independent of
-the host Home Assistant and of the other Woowtech HA Core instances. Uninstalling with "Also
-remove app data" wipes this instance's data.
+the host Home Assistant and of the other Woowtech HA Core instances. Uninstalling the add-on
+wipes this instance's data (a fresh onboarding on reinstall); updating the add-on keeps it.
 
 Based on [jgoakley/hassio-addons](https://github.com/jgoakley/hassio-addons).
