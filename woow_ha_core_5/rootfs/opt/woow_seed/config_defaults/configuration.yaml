@@ -1,0 +1,13 @@
+# Woowtech HA Core — seeded default configuration (ADR 0005).
+# Only written on a fresh instance (when no configuration.yaml exists yet).
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# WOOW centralized ZHA quirks (auto quirk injection).
+# Loads on start; actually injects quirks once this instance also sets up ZHA.
+woow_zha_quirks:
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml

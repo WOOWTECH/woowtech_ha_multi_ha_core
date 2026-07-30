@@ -1,5 +1,9 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
+# Seed curated custom components + defaults into /config on boot (ADR 0005).
+COPY rootfs /
+RUN chmod +x /opt/woow_seed/woow_seed.sh
+
 WORKDIR /config
-CMD cd /config && exec /usr/local/bin/python -m homeassistant --config /config
+CMD [ "/opt/woow_seed/woow_seed.sh" ]
