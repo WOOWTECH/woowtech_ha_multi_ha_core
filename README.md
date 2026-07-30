@@ -28,9 +28,10 @@ Each add-on:
 
 - Runs a Home Assistant Core image (`ghcr.io/woowtech/woowtech-ha` on amd64, the official
   `ghcr.io/home-assistant/home-assistant:stable` on other architectures).
-- Stores its configuration in the add-on's own private `/data` partition, keeping each
-  instance fully isolated from the host and from the other instances. Uninstalling the add-on
-  wipes that instance's data (fresh onboarding on reinstall); updating the add-on keeps it.
+- Stores its configuration in the add-on's own dedicated `addon_config` folder (host
+  `/addon_configs/<slug>`, mounted at `/config`), keeping each instance fully isolated from the
+  host and from the other instances. Uninstalling with "Also remove add-on config and data" off
+  keeps that instance's data (reinstall restores it); on wipes it; updating the add-on keeps it.
 - Maps the container's `8123/tcp` port to a unique host port (8124–8128).
 
 ## Installation
