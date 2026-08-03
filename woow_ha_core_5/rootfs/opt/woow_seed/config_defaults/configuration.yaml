@@ -4,9 +4,10 @@
 # Loads default set of integrations. Do not remove.
 default_config:
 
-# WOOW centralized ZHA quirks (auto quirk injection).
-# Loads on start; actually injects quirks once this instance also sets up ZHA.
-woow_zha_quirks:
+# NOTE: woow_zha_quirks is seeded into custom_components/ but deliberately NOT
+# auto-enabled here — on a ZHA-less instance its _async_heal() task blocks HA
+# startup wrap-up for no benefit (ADR 0005 correction). Add `woow_zha_quirks:`
+# yourself once this instance actually has ZHA set up.
 
 automation: !include automations.yaml
 script: !include scripts.yaml
