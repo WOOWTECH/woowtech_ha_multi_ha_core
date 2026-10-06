@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "repository": "WOOWTECH/woowtech_ha_multi_ha_core",
+  "components": {
+    "woow_ha_core_1": {
+      "id": "woow_ha_core_1",
+      "name": "Woowtech HA Core 1",
+      "version": "2.3.0",
+      "repository": "WOOWTECH/woowtech_ha_multi_ha_core",
+      "source_sha": "4f65388bfa6ee980125e8ca3a19b7b48d03979cf",
+      "source_path": "woow_ha_core_1",
+      "config_file": "config.yaml",
+      "config_sha256": "sha256:456f0715f977ef720c6898e85eaf0efe168e5962cac0c1007059d82dc527773c",
+      "archive_sha256": "sha256:a7bacf4a135802b3cf1a3c6c22cf60ebdaa339bc56fffbacfbf2dc96016a40d7",
+      "context_fingerprint": "sha256:24e053f662b3a72143b1f8c345c48e55e3e7133503467486e95679d5ce0fb029",
+      "material_fingerprint": "sha256:3d4d2c3c34bc23c924e7c960a7fb2401753490d05d35674dbda488549001035b",
+      "architectures": [
+        "aarch64",
+        "amd64",
+        "armhf",
+        "armv7",
+        "i386"
+      ],
+      "config": {
+        "name": "Woowtech HA Core 1",
+        "description": "Woowtech Home Assistant Core instance 1",
+        "version": "2.3.0",
+        "slug": "woow_ha_core_1",
+        "init": false,
+        "webui": "http://[HOST]:[PORT:8123]/",
+        "arch": [
+          "aarch64",
+          "amd64",
+          "armhf",
+          "armv7",
+          "i386"
+        ],
+        "ports": {
+          "8123/tcp": 8124
+        },
+        "map": [
+          "addon_config:rw"
+        ]
+      },
+      "source_build_supported": true,
+      "images": {},
+      "delivery": "local-source-build",
+      "validation": "manifest+source-context+configured-CI (runtime build not certified)",
+      "publisher_run_id": "37410032596",
+      "channel": "stable"
+    },
+    "woow_ha_core_2": {
+      "id": "woow_ha_core_2",
+      "name": "Woowtech HA Core 2",
+      "version": "2.3.0",
+      "repository": "WOOWTECH/woowtech_ha_multi_ha_core",
+      "source_sha": "4f65388bfa6ee980125e8ca3a19b7b48d03979cf",
+      "source_path": "woow_ha_core_2",
+      "config_file": "config.yaml",
+      "config_sha256": "sha256:521e0df45eeff893bd9a95b2cab1ee06a53d0f75ba4ec87219b161355e65a37d",
+      "archive_sha256": "sha256:a7bacf4a135802b3cf1a3c6c22cf60ebdaa339bc56fffbacfbf2dc96016a40d7",
+      "context_fingerprint": "sha256:9e6fa4ed502fe0ff465d751fc2525c6892bb920e4399fa182a06fe2dbbdd8f30",
+      "material_fingerprint": "sha256:84daba3c37aed6c7915d32c5d7226251ae474c1c27a4d992c1268bf96a861205",
+      "architectures": [
+        "aarch64",
+        "amd64",
+        "armhf",
+        "armv7",
+        "i386"
+      ],
+      "config": {
+        "name": "Woowtech HA Core 2",
+        "description": "Woowtech Home Assistant Core instance 2",
+        "version": "2.3.0",
+        "slug": "woow_ha_core_2",
+        "init": false,
+        "webui": "http://[HOST]:[PORT:8123]/",
+        "arch": [
+          "aarch64",
+          "amd64",
+          "armhf",
+          "armv7",
+          "i386"
+        ],
+        "ports": {
+          "8123/tcp": 8125
+        },
+        "map": [
+          "addon_config:rw"
+        ]
+      },
+      "source_build_supported": true,
+      "images": {},
+      "delivery": "local-source-build",
+      "validation": "manifest+source-context+configured-CI (runtime build not certified)",
+      "publisher_run_id": "37410032596",
+      "channel": "stable"
+    },
+    "woow_ha_core_3": {
+      "id": "woow_ha_core_3",
+      "name": "Woowtech HA Core 3",
+      "version": "2.3.0",
+      "repository": "WOOWTECH/woowtech_ha_multi_ha_core",
+      "source_sha": "4f65388bfa6ee980125e8ca3a19b7b48d03979cf",
+      "source_path": "woow_ha_core_3",
+      "config_file": "config.yaml",
+      "config_sha256": "sha256:42ebe01136c0aaf1d21114bc7fc304dc02d43af679d33534e5e9133097169ca0",
+      "archive_sha256": "sha256:a7bacf4a135802b3cf1a3c6c22cf60ebdaa339bc56fffbacfbf2dc96016a40d7",
+      "context_fingerprint": "sha256:1a61b26c35ac865536fdbbd66efe99a97a1b11b69e3bebf79761fda14a8f3805",
+      "material_fingerprint": "sha256:6151e0857a7ebcc753f3ce2bdc2bd0a90b72a4c68d591faa52e4e4f3022a4c70",
+      "architectures": [
+        "aarch64",
+        "amd64",
+        "armhf",
+        "armv7",
+        "i386"
+      ],
+      "config": {
+        "name": "Woowtech HA Core 3",
+        "description": "Woowtech Home Assistant Core instance 3",
+        "version": "2.3.0",
+        "slug": "woow_ha_core_3",
+        "init": false,
+        "webui": "http://[HOST]:[PORT:8123]/",
+        "arch": [
+          "aarch64",
+          "amd64",
+          "armhf",
+          "armv7",
+          "i386"
+        ],
+        "ports": {
+          "8123/tcp": 8126
+        },
+        "map": [
+          "addon_config:rw"
+        ]
+      },
+      "source_build_supported": true,
+      "images": {},
+      "delivery": "local-source-build",
+      "validation": "manifest+source-context+configured-CI (runtime build not certified)",
+      "publisher_run_id": "37410032596",
+      "channel": "stable"
+    },
+    "woow_ha_core_4": {
+      "id": "woow_ha_core_4",
+      "name": "Woowtech HA Core 4",
+      "version": "2.3.0",
+      "repository": "WOOWTECH/woowtech_ha_multi_ha_core",
+      "source_sha": "4f65388bfa6ee980125e8ca3a19b7b48d03979cf",
+      "source_path": "woow_ha_core_4",
+      "config_file": "config.yaml",
+      "config_sha256": "sha256:ea9d4c1d6e460b3d44a558a2cbec676d223f88f9554c41da4bb835e151dbaf96",
+      "archive_sha256": "sha256:a7bacf4a135802b3cf1a3c6c22cf60ebdaa339bc56fffbacfbf2dc96016a40d7",
+      "context_fingerprint": "sha256:dd14e737a9bc38dbc22d888c987dc1d6b9bec84d282889669b95c5b70071d910",
+      "material_fingerprint": "sha256:a6e470ff617834caaf2df005c08169ca3f1a5cb10a3877cdc77fe9b57d562409",
+      "architectures": [
+        "aarch64",
+        "amd64",
+        "armhf",
+        "armv7",
+        "i386"
+      ],
+      "config": {
+        "name": "Woowtech HA Core 4",
+        "description": "Woowtech Home Assistant Core instance 4",
+        "version": "2.3.0",
+        "slug": "woow_ha_core_4",
+        "init": false,
+        "webui": "http://[HOST]:[PORT:8123]/",
+        "arch": [
+          "aarch64",
+          "amd64",
+          "armhf",
+          "armv7",
+          "i386"
+        ],
+        "ports": {
+          "8123/tcp": 8127
+        },
+        "map": [
+          "addon_config:rw"
+        ]
+      },
+      "source_build_supported": true,
+      "images": {},
+      "delivery": "local-source-build",
+      "validation": "manifest+source-context+configured-CI (runtime build not certified)",
+      "publisher_run_id": "37410032596",
+      "channel": "stable"
+    },
+    "woow_ha_core_5": {
+      "id": "woow_ha_core_5",
+      "name": "Woowtech HA Core 5",
+      "version": "2.3.0",
+      "repository": "WOOWTECH/woowtech_ha_multi_ha_core",
+      "source_sha": "4f65388bfa6ee980125e8ca3a19b7b48d03979cf",
+      "source_path": "woow_ha_core_5",
+      "config_file": "config.yaml",
+      "config_sha256": "sha256:26c124c2687437f488c3266c56b4e69eeb19c1d3dd742dd48a230573301ee04c",
+      "archive_sha256": "sha256:a7bacf4a135802b3cf1a3c6c22cf60ebdaa339bc56fffbacfbf2dc96016a40d7",
+      "context_fingerprint": "sha256:6c8a24c7c6147e72ff60a845217edbc19342738514983f5495d2739e19bd93d1",
+      "material_fingerprint": "sha256:e03a34e23d6774e9d987d3d5bbda4b15f6150fedad327465da5012155a25cf5e",
+      "architectures": [
+        "aarch64",
+        "amd64",
+        "armhf",
+        "armv7",
+        "i386"
+      ],
+      "config": {
+        "name": "Woowtech HA Core 5",
+        "description": "Woowtech Home Assistant Core instance 5",
+        "version": "2.3.0",
+        "slug": "woow_ha_core_5",
+        "init": false,
+        "webui": "http://[HOST]:[PORT:8123]/",
+        "arch": [
+          "aarch64",
+          "amd64",
+          "armhf",
+          "armv7",
+          "i386"
+        ],
+        "ports": {
+          "8123/tcp": 8128
+        },
+        "map": [
+          "addon_config:rw"
+        ]
+      },
+      "source_build_supported": true,
+      "images": {},
+      "delivery": "local-source-build",
+      "validation": "manifest+source-context+configured-CI (runtime build not certified)",
+      "publisher_run_id": "37410032596",
+      "channel": "stable"
+    }
+  }
+}
