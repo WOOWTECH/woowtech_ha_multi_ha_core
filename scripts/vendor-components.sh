@@ -46,7 +46,7 @@ while IFS=$'\t' read -r name repo ref srcpath || [ -n "${name:-}" ]; do
 
   rm -rf "${OUT:?}/${name}"
   cp -a "${src}" "${OUT}/${name}"
-  rm -rf "${OUT}/${name}/.git" "${OUT}/${name}/.github"
+  bash "${ROOT}/scripts/strip-dev-leftovers.sh" "${OUT}/${name}"
 
   ver="$(grep -m1 '"version"' "${OUT}/${name}/manifest.json" 2>/dev/null | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')"
   [ -z "${ver}" ] && ver="-"
