@@ -15,13 +15,18 @@ mkdir -p "${CONFIG_DIR}/custom_components"
 
 # One exception to seed-if-missing: an old split component group that is installed
 # but not in use is removed, so its consolidated successor gets seeded below.
-# seed_groups.py prints the successors to skip (groups in use); if the check itself
-# fails, every group is kept and no successor is seeded. HA must still start.
+# seed_groups.py prints the successors to skip (groups in use). If the check itself
+# fails on an instance that already has components, every group is kept and no
+# successor is seeded; a fresh instance is seeded as usual. HA must still start.
 SUCCESSORS="ha_permission_manager woow_ha_records woow_multi_protocol"
 if ! skip="$("${PYTHON}" "$(dirname "$0")/seed_groups.py" "${CONFIG_DIR}")"; then
-  echo "[woow_seed] component group check failed; kept old components, not seeding: ${SUCCESSORS}"
-  skip="${SUCCESSORS}"
+  skip=""
+  if [ -n "$(ls -A "${CONFIG_DIR}/custom_components")" ]; then
+    echo "[woow_seed] component group check failed; kept old components, not seeding: ${SUCCESSORS}"
+    skip="${SUCCESSORS}"
+  fi
 fi
+# Unquoted on purpose: word splitting turns the lines into one space-separated list.
 skip=" $(echo ${skip} | tr -d '\r') "
 
 # Seed each managed custom component only when its folder is absent.

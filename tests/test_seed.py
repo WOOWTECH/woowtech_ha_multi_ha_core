@@ -137,35 +137,55 @@ class SeedTest(unittest.TestCase):
         shutil.rmtree(self.config)
         self.config.mkdir()
 
+    def storage_file(self, name):
+        (self.config / ".storage").mkdir(exist_ok=True)
+        (self.config / ".storage" / name).write_text("{}")
+
+    def yaml_key(self, domain):
+        (self.config / "configuration.yaml").write_text(
+            f"default_config:\n\n{domain}:\n  some: value\n")
+
+    def data_dir(self, name):
+        (self.config / name).mkdir()
+        (self.config / name / "devices.yaml").write_text("[]")
+
     def test_group_in_use_is_kept(self):
-        # (group, signal, arrange) - each of the four "in use" signals.
-        storage = lambda name: lambda: (self.config / ".storage").mkdir(exist_ok=True) or \
-            (self.config / ".storage" / name).write_text("{}")
+        # (group, expected reason, arrange, arg): each of the four "in use" signals.
         cases = [("permission", "config entry ha_label_control",
-                  lambda: self.config_entries("sun", "ha_label_control"))]
+                  self.config_entries, "ha_label_control"),
+                 ("permission", ".storage/ha_permission_manager",
+                  self.storage_file, "ha_permission_manager"),
+                 ("records", ".storage/ha_health_record_member1",
+                  self.storage_file, "ha_health_record_member1")]
         for group, old in GROUP_OLD.items():
             domain = old[-1]
-            cases.append((group, f"config entry {domain}", lambda d=domain: self.config_entries(d)))
-            cases.append((group, f".storage/{domain}", storage(domain)))
-            cases.append((group, "configuration.yaml key " + domain,
-                          lambda d=domain: (self.config / "configuration.yaml").write_text(
-                              f"default_config:\n\n{d}:\n  some: value\n")))
-        cases.append(("records", ".storage/ha_health_record_member1",
-                      storage("ha_health_record_member1")))
-        cases.append(("permission", ".storage/ha_permission_manager",
-                      storage("ha_permission_manager")))
-        for protocol in ("dmx", "knx", "modbus"):
-            def data_dir(p=protocol):
-                (self.config / p).mkdir()
-                (self.config / p / "devices.yaml").write_text("[]")
-            cases.append(("protocol", f"/config/{protocol} not empty", data_dir))
-        for group, reason, arrange in cases:
+            cases += [(group, f"config entry {domain}", self.config_entries, domain),
+                      (group, f".storage/{domain}", self.storage_file, domain),
+                      (group, f"configuration.yaml key {domain}", self.yaml_key, domain)]
+        for name in ("dmx", "knx", "modbus"):
+            cases.append(("protocol", f"/config/{name} not empty", self.data_dir, name))
+        for group, reason, arrange, arg in cases:
             with self.subTest(group=group, reason=reason):
                 self.reset_config()
                 self.install_old()
-                arrange()
+                arrange(arg)
                 self.run_seed()
                 self.assert_only_group_kept(group, reason)
+
+    def test_successor_signals_do_not_hold_a_leftover_old_component(self):
+        # A 2.x permission manager writes the same entry and storage key as 1.x.
+        component(self.cc / "ha_permission_manager", "2.0.15", marker="user")
+        self.install_old(["ha_label_control"])
+        self.config_entries("ha_permission_manager")
+        self.storage_file("ha_permission_manager")
+        self.run_seed()
+        self.assertEqual(self.installed(), sorted(NEW + OTHER))
+        self.assertIn("removed old component: ha_label_control", self.log)
+
+    def test_failing_group_check_on_a_fresh_install_still_seeds_the_successors(self):
+        self.fake_python(fail_groups=True)
+        self.run_seed()
+        self.assertEqual(self.installed(), sorted(NEW + OTHER))
 
     def test_partly_removed_old_group_is_still_replaced(self):
         self.install_old(["ha_finance", "woow_knx"])

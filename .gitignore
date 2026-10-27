@@ -3,3 +3,4 @@ docs/*
 !docs/adr/
 CONTEXT.md
 private/
+__pycache__/
