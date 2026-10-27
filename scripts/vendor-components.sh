@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Vendor the 28 curated custom components into _seed/custom_components/ at their pinned refs.
+# Vendor the curated custom components listed in _seed/seed-manifest.tsv into
+# _seed/custom_components/ at their pinned refs. The folder is rebuilt from scratch,
+# so a component dropped from the manifest disappears from the seed.
 # This is the reproducible source of truth for ADR 0005.
 # Uses GitHub tarballs (via gh, authenticated) — fast and works for private repos.
 # Requires: gh (authenticated), tar. Run from anywhere:
@@ -13,7 +15,8 @@ LOCK="${ROOT}/_seed/seed-lock.tsv"
 TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
-mkdir -p "${OUT}"
+STAGE="${TMP}/custom_components"
+mkdir -p "${STAGE}"
 printf '# name\trepo\tref\tsha\tmanifest_version\n' > "${LOCK}"
 
 count=0
@@ -44,15 +47,17 @@ while IFS=$'\t' read -r name repo ref srcpath || [ -n "${name:-}" ]; do
     exit 1
   fi
 
-  rm -rf "${OUT:?}/${name}"
-  cp -a "${src}" "${OUT}/${name}"
-  bash "${ROOT}/scripts/strip-dev-leftovers.sh" "${OUT}/${name}"
+  cp -a "${src}" "${STAGE}/${name}"
+  bash "${ROOT}/scripts/strip-dev-leftovers.sh" "${STAGE}/${name}"
 
-  ver="$(grep -m1 '"version"' "${OUT}/${name}/manifest.json" 2>/dev/null | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')"
+  ver="$(grep -m1 '"version"' "${STAGE}/${name}/manifest.json" 2>/dev/null | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')"
   [ -z "${ver}" ] && ver="-"
   printf '%s\t%s\t%s\t%s\t%s\n' "${name}" "${repo}" "${ref}" "${sha}" "${ver}" >> "${LOCK}"
   count=$((count + 1))
 done < "${MANIFEST}"
+
+rm -rf "${OUT}"
+cp -a "${STAGE}" "${OUT}"
 
 echo ""
 echo "Vendored ${count} components -> ${OUT}"

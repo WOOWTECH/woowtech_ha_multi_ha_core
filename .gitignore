@@ -1,4 +1,5 @@
 .claude/
-docs/
+docs/*
+!docs/adr/
 CONTEXT.md
 private/
