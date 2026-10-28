@@ -2,7 +2,7 @@
 
 Upstream merged ten split components into three (`ha_permission_manager` 2.x,
 `woow_ha_records`, `woow_multi_protocol`), and 2.4.0 seeds only the three. Under
-seed-if-missing (ADR 0005) an existing instance would keep the ten old folders and
+seed-if-missing ([ADR 0005](0005-seed-custom-components-on-boot.md)) an existing instance would keep the ten old folders and
 gain the three new ones. We make one exception: on every boot, before Home Assistant,
 `seed_groups.py` checks each **component group** whose old folders are present; if
 the group is not **in use**, its old folders are deleted so the successor gets
@@ -23,6 +23,8 @@ replacing unused groups changes nothing a user can see.
 - Only code folders in `custom_components` are ever deleted. Config entries,
   `.storage` and YAML are never touched; any doubt (an unreadable
   `core.config_entries`, a failing check) counts as in use.
+- For the protocol group, a non-empty `/config/dmx`, `/config/knx` or
+  `/config/modbus` counts as in use, whether it is a folder or a regular file.
 - `ha_permission_manager` keeps its domain, so a 2.x folder counts as the
   successor and is never deleted or overwritten; only a 1.x folder is old.
   Once the successor is installed, the entry and storage key it shares with
@@ -31,7 +33,9 @@ replacing unused groups changes nothing a user can see.
   components, so it does not count as in use.
 - A group's old folders are first moved out of `custom_components` together
   and only then deleted; if a move fails, the moves are undone. A group is
-  either fully replaced or untouched.
+  either fully replaced or untouched. They are moved into
+  `/config/.woow_seed_removed`, which is deleted on every boot; it only ever
+  holds old code folders.
 - If the check fails outright, an instance that already has components keeps
   every group; a fresh instance is seeded as usual.
 - A user in use migrates by hand (2.4.0 CHANGELOG). Once they delete the old

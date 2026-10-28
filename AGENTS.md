@@ -2,7 +2,8 @@
 
 Rules for every agent and person who changes this repository. The full
 release mechanism is described in the Woow_HA_App_Store README (section
-"版本策略與同步") and in ADR-0005 of the WOOW addon pipeline.
+"版本策略與同步") and in the WOOW addon pipeline's ADR-0005 (release
+approval). This repo's own `docs/adr/` is numbered separately.
 
 1. **``main`` only changes through a pull request.** A ruleset blocks direct
    pushes, force pushes and deleting the branch, and nobody can bypass it.
