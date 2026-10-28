@@ -36,12 +36,16 @@ class Group:
     successor: str
     data_dirs: tuple = ()  # old data directories under /config, not named after a domain
 
+    def successor_installed(self, custom_components):
+        """Whether the successor is installed under an old domain's name (2.x permission manager)."""
+        return self.successor in self.old_domains and is_successor(custom_components / self.successor)
+
     def signal_domains(self, custom_components):
         """The old domains whose entries, storage and YAML keys count as in use.
 
         Signals of the successor's own domain belong to the successor once it is installed.
         """
-        if self.successor in self.old_domains and is_successor(custom_components / self.successor):
+        if self.successor_installed(custom_components):
             return tuple(d for d in self.old_domains if d != self.successor)
         return self.old_domains
 
@@ -77,7 +81,7 @@ def old_folders(group, custom_components):
     """The group's old folders present in custom_components."""
     return [name for name in group.old_domains
             if (custom_components / name).is_dir()
-            and not (name == group.successor and is_successor(custom_components / name))]
+            and not (name == group.successor and group.successor_installed(custom_components))]
 
 
 def in_use(group, config, domains):
@@ -107,7 +111,7 @@ def in_use(group, config, domains):
 
     configuration = config / "configuration.yaml"
     if configuration.exists():
-        for line in configuration.read_text(encoding="utf-8").splitlines():
+        for line in configuration.read_text(encoding="utf-8-sig").splitlines():
             match = TOP_LEVEL_KEY.match(line)
             if match and match["key"] in domains:
                 return f"configuration.yaml key {match['key']}"

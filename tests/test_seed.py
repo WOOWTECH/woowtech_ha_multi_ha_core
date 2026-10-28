@@ -141,9 +141,14 @@ class SeedTest(unittest.TestCase):
         (self.config / ".storage").mkdir(exist_ok=True)
         (self.config / ".storage" / name).write_text("{}")
 
-    def yaml_key(self, domain, line="{}:"):
+    def yaml_key(self, domain, key_template="{}:"):
         (self.config / "configuration.yaml").write_text(
-            f"default_config:\n\n{line.format(domain)}\n  some: value\n")
+            f"default_config:\n\n{key_template.format(domain)}\n  some: value\n")
+
+    def yaml_key_first_after_bom(self, domain):
+        # Some Windows editors save a BOM; HA's YAML loader skips it.
+        (self.config / "configuration.yaml").write_text(
+            f"﻿{domain}:\n  some: value\n", encoding="utf-8")
 
     def data_dir(self, name):
         (self.config / name).mkdir()
@@ -164,9 +169,11 @@ class SeedTest(unittest.TestCase):
                       (group, f"configuration.yaml key {domain}", self.yaml_key, domain)]
         for name in ("dmx", "knx", "modbus"):
             cases.append(("protocol", f"/config/{name} not empty", self.data_dir, name))
-        for line in ("{} :", '"{}":', "'{}' :"):
+        for key_template in ("{} :", '"{}":', "'{}':", "'{}' :"):
             cases.append(("records", "configuration.yaml key ha_finance",
-                          lambda d, line=line: self.yaml_key(d, line), "ha_finance"))
+                          lambda d, t=key_template: self.yaml_key(d, t), "ha_finance"))
+        cases.append(("records", "configuration.yaml key ha_finance",
+                      self.yaml_key_first_after_bom, "ha_finance"))
         for group, reason, arrange, arg in cases:
             with self.subTest(group=group, reason=reason):
                 self.reset_config()
@@ -176,11 +183,11 @@ class SeedTest(unittest.TestCase):
                 self.assert_only_group_kept(group, reason)
 
     def test_indented_or_commented_yaml_key_is_not_in_use(self):
-        for line in ("  {}:", "# {}:", "#{}:"):
-            with self.subTest(line=line):
+        for key_template in ("  {}:", "# {}:", "#{}:"):
+            with self.subTest(key_template=key_template):
                 self.reset_config()
                 self.install_old(["ha_finance"])
-                self.yaml_key("ha_finance", line)
+                self.yaml_key("ha_finance", key_template)
                 self.run_seed()
                 self.assertEqual(self.installed(), sorted(NEW + OTHER))
                 self.assertIn("removed old component: ha_finance", self.log)
@@ -206,7 +213,8 @@ class SeedTest(unittest.TestCase):
                 arrange("ha_permission_manager")
                 self.run_seed()
                 self.assertEqual(self.installed(), sorted(
-                    ["ha_area_control", "woow_ha_records", "woow_multi_protocol"] + OTHER))
+                    ["ha_area_control"] + [n for n in NEW if n != GROUP_NEW["permission"]]
+                    + OTHER))
                 self.assertEqual(self.marker("ha_area_control"), "old")
                 self.assertIn(f"kept the old permission components: in use ({reason}", self.log)
 
