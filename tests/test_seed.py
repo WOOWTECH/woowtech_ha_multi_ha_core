@@ -272,7 +272,6 @@ class SeedTest(unittest.TestCase):
         self.assertNotIn("kept the old", self.log)
 
 
-
 class SuccessorListTest(unittest.TestCase):
     def test_shell_fallback_lists_the_same_successors_as_the_groups(self):
         shell = re.search(r'^SUCCESSORS="([^"]*)"', SCRIPT.read_text(encoding="utf-8"), re.M)

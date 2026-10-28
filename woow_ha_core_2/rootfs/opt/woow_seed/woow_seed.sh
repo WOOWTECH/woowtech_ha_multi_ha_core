@@ -18,7 +18,7 @@ mkdir -p "${CONFIG_DIR}/custom_components"
 # seed_groups.py prints the successors to skip (groups in use). If the check itself
 # fails on an instance that already has components, every group is kept and no
 # successor is seeded; a fresh instance is seeded as usual. HA must still start.
-# The successors of seed_groups.py GROUPS, repeated so this works without Python; keep both in step.
+# The successors of seed_groups.py GROUPS, repeated for when that script fails; keep both in step.
 SUCCESSORS="ha_permission_manager woow_ha_records woow_multi_protocol"
 if ! skip="$("${PYTHON}" "$(dirname "$0")/seed_groups.py" "${CONFIG_DIR}")"; then
   skip=""

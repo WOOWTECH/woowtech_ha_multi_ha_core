@@ -2,8 +2,8 @@
 
 Upstream merged ten split components into three (`ha_permission_manager` 2.x,
 `woow_ha_records`, `woow_multi_protocol`), and 2.4.0 seeds only the three. Under
-seed-if-missing ([ADR 0005](0005-seed-custom-components-on-boot.md)) an existing instance would keep the ten old folders and
-gain the three new ones. We make one exception: on every boot, before Home Assistant,
+seed-if-missing ([ADR 0005](0005-seed-custom-components-on-boot.md)) an existing
+instance would keep the ten old folders and gain the three new ones. We make one exception: on every boot, before Home Assistant,
 `seed_groups.py` checks each **component group** whose old folders are present; if
 the group is not **in use**, its old folders are deleted so the successor gets
 seeded. A group in use is left exactly as it is and its successor is not seeded;
