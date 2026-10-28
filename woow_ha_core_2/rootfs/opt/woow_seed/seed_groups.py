@@ -130,7 +130,7 @@ def keep(group, reason, hint=""):
 def recover(custom_components, trash):
     """Finish what an interrupted boot left in the trash. Returns the groups not restored.
 
-    <group>.done holds a group whose folders were all moved out: it is deleted.
+    <name>.done holds what was all moved out (a group's folders, or hacs): it is deleted.
     <group> holds a group interrupted while moving out or back: its folders are
     moved back, so a group is never left half deleted.
     """
@@ -230,7 +230,7 @@ def replace_hacs(custom_components, seed_components, trash):
     shutil.rmtree(done, ignore_errors=True)
     trash.mkdir(exist_ok=True)
     hacs.rename(done)
-    log(f"replaced custom_components/{HACS}: it has no {FRONTEND}/, so HACS could not load.")
+    log(f"replaced custom_components/{HACS}: it has no {FRONTEND}/, so HACS could not load")
     shutil.rmtree(done, ignore_errors=True)
 
 
