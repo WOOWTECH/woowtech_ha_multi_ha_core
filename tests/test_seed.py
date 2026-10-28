@@ -65,6 +65,12 @@ def component(path, version, marker="seed"):
     (path / "marker").write_text(marker)
 
 
+def frontend(hacs):
+    """Add the hacs_frontend/ that HACS builds at release time."""
+    (hacs / "hacs_frontend").mkdir()
+    (hacs / "hacs_frontend" / "__init__.py").write_text("VERSION = '1'\n")
+
+
 class SeedTest(unittest.TestCase):
     def setUp(self):
         tmp = Path(tempfile.mkdtemp())
@@ -77,6 +83,7 @@ class SeedTest(unittest.TestCase):
         component(self.seed / "custom_components" / "woow_multi_protocol", "3.0.0")
         for name in OTHER:
             component(self.seed / "custom_components" / name, "1.0.0")
+        frontend(self.seed / "custom_components" / "hacs")
         self.config.mkdir()
         self.python = tmp / "python"
         self.shim = tmp / "fault_shim.py"
@@ -430,6 +437,59 @@ class SeedTest(unittest.TestCase):
         self.run_seed()
         self.assertEqual(self.present(), sorted(NEW + OTHER))
         self.assertNotIn("kept the old", self.log)
+
+    # --- hacs without hacs_frontend/ (the second exception) ---------------
+
+    def test_hacs_without_frontend_is_replaced(self):
+        # 2.4.1 seeded the hacs source tree, which cannot be imported.
+        component(self.cc / "hacs", "0.0.0", marker="old")
+        self.run_seed()
+        self.assertEqual(self.marker("hacs"), "seed")
+        self.assertTrue((self.cc / "hacs" / "hacs_frontend").is_dir())
+        self.assertEqual(self.log.count("replaced custom_components/hacs"), 1, self.log)
+        self.assertIn("has no hacs_frontend/", self.log)
+
+    def test_missing_hacs_is_seeded_complete(self):
+        # Fresh install, or an existing instance without hacs: plain seed-if-missing.
+        for label, arrange in (("fresh", lambda: None),
+                               ("existing", lambda: self.config_entries("sun"))):
+            with self.subTest(label):
+                self.reset_config()
+                arrange()
+                self.run_seed()
+                self.assertEqual(self.marker("hacs"), "seed")
+                self.assertTrue((self.cc / "hacs" / "hacs_frontend").is_dir())
+                self.assertNotIn("replaced custom_components/hacs", self.log)
+
+    def test_hacs_is_not_replaced_by_a_seed_without_frontend(self):
+        shutil.rmtree(self.seed / "custom_components" / "hacs" / "hacs_frontend")
+        component(self.cc / "hacs", "0.0.0", marker="old")
+        self.run_seed()
+        self.assertEqual(self.marker("hacs"), "old")
+        self.assertNotIn("replaced custom_components/hacs", self.log)
+
+    def test_hacs_with_frontend_is_left_alone(self):
+        # A user who reinstalled HACS has a complete hacs, maybe a newer one.
+        component(self.cc / "hacs", "2.0.6", marker="user")
+        frontend(self.cc / "hacs")
+        manifest = (self.cc / "hacs" / "manifest.json").read_bytes()
+        self.run_seed()
+        self.assertEqual(self.marker("hacs"), "user")
+        self.assertEqual((self.cc / "hacs" / "manifest.json").read_bytes(), manifest)
+        self.assertNotIn("replaced custom_components/hacs", self.log)
+
+    def test_hacs_that_cannot_be_moved_out_is_kept_and_ha_starts(self):
+        component(self.cc / "hacs", "0.0.0", marker="old")
+        self.install_old(GROUP_OLD["records"])
+        self.config_entries("ha_finance")
+        self.faults = "hacs>out"
+        self.run_seed()
+        self.assertEqual(self.marker("hacs"), "old")
+        self.assertIn("could not replace custom_components/hacs", self.log)
+        # The group check still ran to the end: records kept, the others seeded.
+        self.assertIn("kept the old records components: in use", self.log)
+        self.assertNotIn("woow_ha_records", self.present())
+        self.assertEqual(self.marker("ha_permission_manager"), "seed")
 
 
 if __name__ == "__main__":
