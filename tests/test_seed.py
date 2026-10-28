@@ -9,6 +9,7 @@ Run from the repository root:  python -m unittest discover -s tests
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,6 +34,9 @@ GROUP_NEW = {
     "protocol": "woow_multi_protocol",
 }
 OLD = [d for names in GROUP_OLD.values() for d in names]
+
+sys.path.insert(0, str(ROOT / "_seed"))
+import seed_groups  # noqa: E402
 
 
 def component(path, version, marker="seed"):
@@ -266,6 +270,14 @@ class SeedTest(unittest.TestCase):
         self.run_seed()
         self.assertEqual(self.installed(), sorted(NEW + OTHER))
         self.assertNotIn("kept the old", self.log)
+
+
+
+class SuccessorListTest(unittest.TestCase):
+    def test_shell_fallback_lists_the_same_successors_as_the_groups(self):
+        shell = re.search(r'^SUCCESSORS="([^"]*)"', SCRIPT.read_text(encoding="utf-8"), re.M)
+        self.assertEqual(sorted(shell[1].split()),
+                         sorted(group.successor for group in seed_groups.GROUPS))
 
 
 if __name__ == "__main__":

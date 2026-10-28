@@ -40,16 +40,17 @@ class Group:
         """Whether the successor is installed under an old domain's name (2.x permission manager)."""
         return self.successor in self.old_domains and is_successor(custom_components / self.successor)
 
-    def signal_domains(self, custom_components):
+    def signal_domains(self, successor_installed):
         """The old domains whose entries, storage and YAML keys count as in use.
 
         Signals of the successor's own domain belong to the successor once it is installed.
         """
-        if self.successor_installed(custom_components):
+        if successor_installed:
             return tuple(d for d in self.old_domains if d != self.successor)
         return self.old_domains
 
 
+# woow_seed.sh repeats the successors in SUCCESSORS, for when this script fails; keep both in step.
 GROUPS = [
     Group("permission", ("ha_permission_manager", "ha_area_control", "ha_label_control"),
           "ha_permission_manager"),
@@ -77,14 +78,14 @@ def is_successor(path):
         return False
 
 
-def old_folders(group, custom_components):
+def old_folders(group, custom_components, successor_installed):
     """The group's old folders present in custom_components."""
     return [name for name in group.old_domains
             if (custom_components / name).is_dir()
-            and not (name == group.successor and group.successor_installed(custom_components))]
+            and not (name == group.successor and successor_installed)]
 
 
-def in_use(group, config, domains):
+def in_use_reason(group, config, domains):
     """Why the group counts as in use, or None. Raises when that cannot be told.
 
     Any one of these counts, for the given old domains: a config entry; a .storage
@@ -144,11 +145,12 @@ def main(config):
     trash = config / TRASH
     shutil.rmtree(trash, ignore_errors=True)  # left over from an interrupted boot
     for group in GROUPS:
-        present = old_folders(group, custom_components)
+        successor_installed = group.successor_installed(custom_components)
+        present = old_folders(group, custom_components, successor_installed)
         if not present:
             continue
         try:
-            reason = in_use(group, config, group.signal_domains(custom_components))
+            reason = in_use_reason(group, config, group.signal_domains(successor_installed))
         except Exception as err:  # noqa: BLE001 - any doubt keeps the group
             reason = f"could not check ({err})"
         if reason:
