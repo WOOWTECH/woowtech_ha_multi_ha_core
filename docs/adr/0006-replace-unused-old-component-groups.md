@@ -1,7 +1,7 @@
 # Replace unused old component groups with their consolidated successors
 
 Upstream merged ten split components into three (`ha_permission_manager` 2.x,
-`woow_ha_records`, `woow_multi_protocol`), and 2.4.0 seeds only the three. Under
+`woow_ha_records`, `woow_multi_protocol`), and 2.4.1 seeds only the three. Under
 seed-if-missing ([ADR 0005](0005-seed-custom-components-on-boot.md)) an existing
 instance would keep the ten old folders and gain the three new ones. We make one exception: on every boot, before Home Assistant,
 `seed_groups.py` checks each **component group** whose old folders are present; if
@@ -53,7 +53,7 @@ replacing unused groups changes nothing a user can see.
   successor (`ha_permission_manager`) counts as old unless its manifest
   shows version 2 or higher, as in `is_successor()`; a manifest that cannot
   be read counts as old, so a 1.x-only permission group is kept and logged.
-- A user in use migrates by hand (2.4.0 CHANGELOG). Once they delete the old
+- A user in use migrates by hand (2.4.1 CHANGELOG). Once they delete the old
   folders the successor is seeded on the next boot, whatever data the old
   components left behind.
 - `tests/test_seed.py` runs the real entrypoint against a fake `/config`.

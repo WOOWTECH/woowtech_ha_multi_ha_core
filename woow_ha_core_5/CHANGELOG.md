@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.4.0
+## 2.4.1
 
 The bundled custom components move to the consolidated upstream layout. Ten
 split components are replaced by three:

@@ -13,7 +13,7 @@ Each group is handled on its own: an error in one keeps only that group.
 Only component code folders are ever deleted; config entries, .storage and YAML
 are never touched. A missing core.config_entries means Home Assistant never ran
 with these components, so it does not count as in use. Log lines go to stderr.
-See the 2.4.0 CHANGELOG entry.
+See the CHANGELOG entry that replaced the split components.
 
 Usage: python seed_groups.py <config_dir>
 """
@@ -197,7 +197,7 @@ def replace(group, config, custom_components, trash):
     except Exception as err:  # noqa: BLE001 - any doubt keeps the group
         reason = f"could not check ({err})"
     if reason:
-        keep(group, f"in use ({reason})", " Migrate by hand, see CHANGELOG 2.4.0.")
+        keep(group, f"in use ({reason})", " Migrate by hand, see the CHANGELOG.")
         return
     try:
         remove(group, old, custom_components, trash)
