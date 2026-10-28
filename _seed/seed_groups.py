@@ -17,6 +17,7 @@ Usage: python seed_groups.py <config_dir>
 """
 
 import json
+import re
 import shutil
 import sys
 from dataclasses import dataclass
@@ -24,6 +25,8 @@ from pathlib import Path
 
 PREFIX = "[woow_seed]"
 TRASH = ".woow_seed_removed"  # under /config, outside custom_components
+# An unindented, optionally quoted key, then a colon: `key:`, `key :`, `"key":`, `'key':`.
+TOP_LEVEL_KEY = re.compile(r"""(?P<q>["']?)(?P<key>\w+)(?P=q)[ \t]*:""")
 
 
 @dataclass(frozen=True)
@@ -32,6 +35,15 @@ class Group:
     old_domains: tuple
     successor: str
     data_dirs: tuple = ()  # old data directories under /config, not named after a domain
+
+    def signal_domains(self, custom_components):
+        """The old domains whose entries, storage and YAML keys count as in use.
+
+        Signals of the successor's own domain belong to the successor once it is installed.
+        """
+        if self.successor in self.old_domains and is_successor(custom_components / self.successor):
+            return tuple(d for d in self.old_domains if d != self.successor)
+        return self.old_domains
 
 
 GROUPS = [
@@ -96,9 +108,9 @@ def in_use(group, config, domains):
     configuration = config / "configuration.yaml"
     if configuration.exists():
         for line in configuration.read_text(encoding="utf-8").splitlines():
-            key, colon, _ = line.partition(":")
-            if colon and key in domains:
-                return f"configuration.yaml key {key}"
+            match = TOP_LEVEL_KEY.match(line)
+            if match and match["key"] in domains:
+                return f"configuration.yaml key {match['key']}"
     return None
 
 
@@ -131,12 +143,8 @@ def main(config):
         present = old_folders(group, custom_components)
         if not present:
             continue
-        # Signals of the successor's own domain belong to the successor once it is installed.
-        domains = group.old_domains
-        if group.successor not in present and group.successor in domains:
-            domains = tuple(d for d in domains if d != group.successor)
         try:
-            reason = in_use(group, config, domains)
+            reason = in_use(group, config, group.signal_domains(custom_components))
         except Exception as err:  # noqa: BLE001 - any doubt keeps the group
             reason = f"could not check ({err})"
         if reason:

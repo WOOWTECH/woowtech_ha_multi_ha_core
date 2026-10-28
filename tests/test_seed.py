@@ -141,9 +141,9 @@ class SeedTest(unittest.TestCase):
         (self.config / ".storage").mkdir(exist_ok=True)
         (self.config / ".storage" / name).write_text("{}")
 
-    def yaml_key(self, domain):
+    def yaml_key(self, domain, line="{}:"):
         (self.config / "configuration.yaml").write_text(
-            f"default_config:\n\n{domain}:\n  some: value\n")
+            f"default_config:\n\n{line.format(domain)}\n  some: value\n")
 
     def data_dir(self, name):
         (self.config / name).mkdir()
@@ -164,6 +164,9 @@ class SeedTest(unittest.TestCase):
                       (group, f"configuration.yaml key {domain}", self.yaml_key, domain)]
         for name in ("dmx", "knx", "modbus"):
             cases.append(("protocol", f"/config/{name} not empty", self.data_dir, name))
+        for line in ("{} :", '"{}":', "'{}' :"):
+            cases.append(("records", "configuration.yaml key ha_finance",
+                          lambda d, line=line: self.yaml_key(d, line), "ha_finance"))
         for group, reason, arrange, arg in cases:
             with self.subTest(group=group, reason=reason):
                 self.reset_config()
@@ -171,6 +174,16 @@ class SeedTest(unittest.TestCase):
                 arrange(arg)
                 self.run_seed()
                 self.assert_only_group_kept(group, reason)
+
+    def test_indented_or_commented_yaml_key_is_not_in_use(self):
+        for line in ("  {}:", "# {}:", "#{}:"):
+            with self.subTest(line=line):
+                self.reset_config()
+                self.install_old(["ha_finance"])
+                self.yaml_key("ha_finance", line)
+                self.run_seed()
+                self.assertEqual(self.installed(), sorted(NEW + OTHER))
+                self.assertIn("removed old component: ha_finance", self.log)
 
     def test_successor_signals_do_not_hold_a_leftover_old_component(self):
         # A 2.x permission manager writes the same entry and storage key as 1.x.
@@ -181,6 +194,21 @@ class SeedTest(unittest.TestCase):
         self.run_seed()
         self.assertEqual(self.installed(), sorted(NEW + OTHER))
         self.assertIn("removed old component: ha_label_control", self.log)
+
+    def test_permission_signals_hold_the_group_when_the_old_manager_folder_is_gone(self):
+        # 1.x deleted by hand, ha_area_control left: no successor is installed, so
+        # the ha_permission_manager entry and storage key still count as in use.
+        for reason, arrange in (("config entry ha_permission_manager", self.config_entries),
+                                (".storage/ha_permission_manager", self.storage_file)):
+            with self.subTest(reason=reason):
+                self.reset_config()
+                self.install_old(["ha_area_control"])
+                arrange("ha_permission_manager")
+                self.run_seed()
+                self.assertEqual(self.installed(), sorted(
+                    ["ha_area_control", "woow_ha_records", "woow_multi_protocol"] + OTHER))
+                self.assertEqual(self.marker("ha_area_control"), "old")
+                self.assertIn(f"kept the old permission components: in use ({reason}", self.log)
 
     def test_failing_group_check_on_a_fresh_install_still_seeds_the_successors(self):
         self.fake_python(fail_groups=True)
