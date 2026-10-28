@@ -15,6 +15,7 @@ for n in 1 2 3 4 5; do
   cp -a "${SEED}/custom_components" "${dest}/custom_components"
   cp -a "${SEED}/config_defaults" "${dest}/config_defaults"
   cp -a "${SEED}/woow_seed.sh" "${dest}/woow_seed.sh"
+  cp -a "${SEED}/seed_groups.py" "${dest}/seed_groups.py"
   chmod +x "${dest}/woow_seed.sh"
   echo "synced -> woow_ha_core_${n}/rootfs/opt/woow_seed"
 done
