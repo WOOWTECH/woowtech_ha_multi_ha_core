@@ -27,17 +27,32 @@ replacing unused groups changes nothing a user can see.
   `/config/modbus` counts as in use, whether it is a folder or a regular file.
 - `ha_permission_manager` keeps its domain, so a 2.x folder counts as the
   successor and is never deleted or overwritten; only a 1.x folder is old.
-  Once the successor is installed, the entry and storage key it shares with
-  1.x no longer count as the group being in use.
+  Once the successor is present in `custom_components`, the entry and storage
+  key it shares with 1.x no longer count as the group being in use. A
+  `ha_permission_manager` folder whose manifest version cannot be read counts
+  as in use.
 - A missing `core.config_entries` means Home Assistant never ran with the old
   components, so it does not count as in use.
 - A group's old folders are first moved out of `custom_components` together
-  and only then deleted; if a move fails, the moves are undone. A group is
-  either fully replaced or untouched. They are moved into
-  `/config/.woow_seed_removed`, which is deleted on every boot; it only ever
-  holds old code folders.
-- If the check fails outright, an instance that already has components keeps
-  every group; a fresh instance is seeded as usual.
+  and only then deleted; if a move fails, the moves are undone. A move back
+  that fails, or a boot interrupted mid-move, is undone on the next boot
+  before anything else, so the group is normally whole again after that boot.
+  Until it is, the group stays split and its successor is not seeded. A folder
+  left in `.woow_seed_removed` that cannot be moved back (a folder of that
+  name is in `custom_components` again, or the move keeps failing) is neither
+  restored nor deleted: the group stays split, and its successor is not
+  seeded, until someone removes the colliding folder or fixes the cause; the
+  log says so on every boot.
+- Each group is checked on its own: an error in one keeps only that group.
+  If `seed_groups.py` cannot run, or is killed, `woow_seed.sh` does not
+  seed the successor of any group that still has an old folder in
+  `custom_components` or a folder in `.woow_seed_removed`, and seeds the
+  rest as usual (a fresh instance gets all three). So a group already
+  replaced is not left without its successor, and a successor never takes
+  the place a folder must be moved back to. A folder named after the
+  successor (`ha_permission_manager`) counts as old unless its manifest
+  shows version 2 or higher, as in `is_successor()`; a manifest that cannot
+  be read counts as old, so a 1.x-only permission group is kept and logged.
 - A user in use migrates by hand (2.4.0 CHANGELOG). Once they delete the old
   folders the successor is seeded on the next boot, whatever data the old
   components left behind.

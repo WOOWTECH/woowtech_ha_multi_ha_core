@@ -30,9 +30,14 @@ component exists; `.storage/` has a file whose name starts with an old
 component's domain (the permission group's is `ha_permission_manager`); for the
 protocol group, `/config/dmx`, `/config/knx` or `/config/modbus` exists and is
 not empty; `configuration.yaml` has a top-level key named after an old
-component. If the check cannot be made (for example `core.config_entries`
-cannot be read), the group counts as in use. Only component code folders are
-ever deleted; config entries, `.storage` and YAML are never touched.
+component. Once `ha_permission_manager` 2.x is present in `custom_components`,
+the config entry and `.storage` file it shares with 1.x no longer count. If the
+check cannot be made (for example `core.config_entries` or the
+`ha_permission_manager` manifest cannot be read), the group counts as in use.
+When that manifest cannot be read, the log names the file and says to check
+or replace that folder; if the check cannot run at all, the log names each
+group kept. Only component code folders are ever deleted; config entries,
+`.storage` and YAML are never touched.
 
 New installations get the three new components directly.
 
