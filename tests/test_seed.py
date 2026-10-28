@@ -229,7 +229,8 @@ class SeedTest(unittest.TestCase):
         variants = {"spaces before colon": "ha_finance :\n",
                     "byte order mark": "﻿ha_finance:\n",
                     "double quoted": '"ha_finance": {}\n',
-                    "single quoted": "'ha_finance': {}\n"}
+                    "single quoted": "'ha_finance': {}\n",
+                    "quoted, spaces before colon": "'ha_finance' : {}\n"}
         for label, text in variants.items():
             with self.subTest(label):
                 self.reset_config()
@@ -237,12 +238,17 @@ class SeedTest(unittest.TestCase):
                 (self.config / "configuration.yaml").write_text(text, encoding="utf-8")
                 self.run_seed()
                 self.assert_only_group_kept("records", "configuration.yaml key ha_finance")
-        with self.subTest("indented key is not top level"):
-            self.reset_config()
-            self.install_old()
-            (self.config / "configuration.yaml").write_text("homeassistant:\n  ha_finance:\n")
-            self.run_seed()
-            self.assertEqual(self.present(), sorted(NEW + OTHER))
+        not_top_level = {"indented key": "homeassistant:\n  ha_finance:\n",
+                         "tab-indented key": "homeassistant:\n\tha_finance:\n",
+                         "commented key": "# ha_finance:\n",
+                         "commented key, no space": "#ha_finance:\n"}
+        for label, text in not_top_level.items():
+            with self.subTest(label):
+                self.reset_config()
+                self.install_old()
+                (self.config / "configuration.yaml").write_text(text, encoding="utf-8")
+                self.run_seed()
+                self.assertEqual(self.present(), sorted(NEW + OTHER))
 
     def test_failed_undo_keeps_the_group_and_other_groups_are_still_seeded(self):
         self.install_old()

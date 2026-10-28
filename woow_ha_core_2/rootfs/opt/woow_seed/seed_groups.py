@@ -72,11 +72,11 @@ def is_successor(path):
             f"custom_components/{path.name}/manifest.json cannot be read ({err})") from err
 
 
-def old_folders(group, custom_components, successor_present):
+def old_folders(group, custom_components, successor_in_old_folder):
     """The group's old folders present in custom_components."""
     return [name for name in group.old_domains
             if (custom_components / name).is_dir()
-            and not (name == group.successor and successor_present)]
+            and not (name == group.successor and successor_in_old_folder)]
 
 
 def in_use_reason(group, config, domains):
@@ -183,14 +183,14 @@ def remove(group, old, custom_components, trash):
 def replace(group, config, custom_components, trash):
     """Remove the group's old folders if it is not in use; otherwise keep() it."""
     successor = custom_components / group.successor
-    successor_present = (group.successor in group.old_domains
-                         and successor.is_dir() and is_successor(successor))
-    old = old_folders(group, custom_components, successor_present)
+    successor_in_old_folder = (group.successor in group.old_domains
+                               and successor.is_dir() and is_successor(successor))
+    old = old_folders(group, custom_components, successor_in_old_folder)
     if not old:
         return
     # Signals of the successor's own domain belong to the successor once it is present.
     domains = group.old_domains
-    if successor_present:
+    if successor_in_old_folder:
         domains = tuple(d for d in domains if d != group.successor)
     try:
         reason = in_use_reason(group, config, domains)
