@@ -1,4 +1,5 @@
 # name	repo	ref	srcpath   (ADR 0005 — pinned 2026-07-30; HEAD refs pinned to the seed-lock commits 2026-10-22; consolidated layout 2026-10-27)
+# srcpath asset:<file>[/<path>] takes <path> (default: the root) of that zip asset of the release tagged <ref>, and the fifth column is the asset's sha256; vendoring fails if it differs (hacs: release-built hacs_frontend/, 2026-10-28)
 atmocube	WOOWTECH/woow_ha_atmocube	03755b61add05234490c35bf99d95d81589f959a	custom_components/atmocube
 browser_mod	thomasloven/hass-browser_mod	v2.13.3	custom_components/browser_mod
 climate_template	WOOWTECH/Woow_ha_entities_template	1bc1c0ce6cfb4df256bab20dd8969ed8399a469c	climate_template
@@ -6,7 +7,7 @@ config_editor	junkfix/config-editor	f4a425373a957f04eac7eb292b56e08e9d272fa2	cus
 cover_rf_time_based	nagyrobi/home-assistant-custom-components-cover-rf-time-based	eb0f70ba045b431e77b72336b6f7236e7a6658a7	custom_components/cover_rf_time_based
 ha_mcp_tools	WOOWTECH/Woow_ha_ai_mcp	83b3f4f2e2f8d7a742dc81833e208944eb83e68e	custom_components/ha_mcp_tools
 ha_permission_manager	WOOWTECH/Woow_ha_permission_control	215ed83d0ff23f0c39992fa979f3b02314d12663	custom_components/ha_permission_manager
-hacs	hacs/integration	2.0.5	custom_components/hacs
+hacs	hacs/integration	2.0.5	asset:hacs.zip	97be6b824a4f38e683728cc6dd72367f6b8bad0a43428b1b3b987a3087adf413
 localtuya	rospogrigio/localtuya	59c95cd06c2696afc98f6bc52d5fa060f3c517da	custom_components/localtuya
 nodered	zachowj/hass-node-red	82ff4e6b7bb4e0fbc46b938122019e5cb898b4b9	custom_components/nodered
 pyscript	custom-components/pyscript	b08de4a885aa6e7dc8abb27b4608ed8a12f044ca	custom_components/pyscript
