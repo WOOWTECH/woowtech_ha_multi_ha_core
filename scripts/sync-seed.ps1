@@ -11,5 +11,6 @@ foreach ($n in 1..5) {
     Copy-Item -Recurse -Force (Join-Path $seed "custom_components") (Join-Path $dest "custom_components")
     Copy-Item -Recurse -Force (Join-Path $seed "config_defaults")   (Join-Path $dest "config_defaults")
     Copy-Item -Force (Join-Path $seed "woow_seed.sh") (Join-Path $dest "woow_seed.sh")
+    Copy-Item -Force (Join-Path $seed "seed_groups.py") (Join-Path $dest "seed_groups.py")
     Write-Host "synced -> woow_ha_core_$n\rootfs\opt\woow_seed"
 }

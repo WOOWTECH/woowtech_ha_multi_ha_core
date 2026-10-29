@@ -1,10 +1,11 @@
 name: Release
 
 # The App Store ships only published Releases of this repository (registry
-# ref_policy: release). Every push to main validates each add-on and builds
-# its amd64 image the way a Home Assistant host builds it locally; when that
-# passes, the Store's shared workflow publishes the Release for a config.yaml
-# version that has none yet. A version that is already released is left alone.
+# ref_policy: release). Every push to main and every pull request runs the
+# seed entrypoint tests, validates each add-on and builds its amd64 image the
+# way a Home Assistant host builds it locally; when that passes on main, the
+# Store's shared workflow publishes the Release for a config.yaml version that
+# has none yet. A version that is already released is left alone.
 
 on:
   push:
@@ -45,6 +46,12 @@ jobs:
           yq -e '.arch[] | select(. == "amd64")' "${ADDON}/config.yaml" >/dev/null || { echo "::error::${ADDON} does not support amd64"; exit 1; }
           echo "version=$(yq -r '.version' "${ADDON}/config.yaml")" >> "$GITHUB_OUTPUT"
           echo "base=$(yq -r '.build_from.amd64 // ""' "${ADDON}/build.yaml")" >> "$GITHUB_OUTPUT"
+
+      # The seed tests run in every matrix leg (a few seconds each) because
+      # the ruleset requires exactly these job names; a separate job would
+      # not gate merges without a ruleset change.
+      - name: Test the seed entrypoint
+        run: python3 -m unittest discover -s tests -v
 
       - name: Build the amd64 image
         env:
