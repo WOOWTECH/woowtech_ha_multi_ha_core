@@ -82,8 +82,9 @@ jobs:
   # version is compared with the version users run now; undeclared breaking
   # configuration changes block it (see AGENTS.md item 3). Category 1 only:
   # these addons are built on the device, so there is no SBOM to hand over
-  # and the vulnerability comparison is #90. No needs: and no path filter, so
-  # a PR that changes no version passes in seconds; on push it passes at once.
+  # and the vulnerability comparison is #90. No needs:, so a PR that changes
+  # no version passes in seconds. On push it passes at once; a push that
+  # changes only docs (paths-ignore above) does not run it.
   upgrade-comparison:
     name: Upgrade comparison
     permissions:
