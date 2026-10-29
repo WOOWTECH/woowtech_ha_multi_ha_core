@@ -52,7 +52,6 @@ by hand.
 
 - The default `configuration.yaml` note now points to the UI instead of the
   `woow_zha_quirks:` key; it is still written only on a fresh instance.
-
 - Only the `custom_components/woow_zha_quirks` code folder is ever removed.
   `.storage`, config entries and `configuration.yaml` are never touched, and no
   config entry is created for an instance in use.

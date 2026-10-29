@@ -27,7 +27,7 @@ On every start, before Home Assistant, the add-on checks
   the `configuration.yaml` key, so on a factory instance the old version never
   loaded and nothing that was set up is lost.
 - **1.x before 1.4, in use**: left exactly as it is, and Home Assistant keeps
-  loading it from YAML. The log shows a line starting with
+  loading it as before. The log shows a line starting with
   `[woow_seed] kept custom_components/woow_zha_quirks` that names the reason.
   It counts as in use when `configuration.yaml` has a top-level
   `woow_zha_quirks:` key, or a `woow_zha_quirks` config entry exists.

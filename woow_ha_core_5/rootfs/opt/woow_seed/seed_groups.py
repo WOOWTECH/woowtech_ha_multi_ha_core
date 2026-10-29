@@ -37,8 +37,8 @@ TRASH = ".woow_seed_removed"  # under /config, outside custom_components
 DONE = ".done"  # suffix of a group's trash folder once all its moves succeeded
 HACS = "hacs"
 FRONTEND = "hacs_frontend"  # built at HACS release time; not in the repository source
-ZHA = "woow_zha_quirks"
-ZHA_UI = (1, 4)  # the first woow_zha_quirks set up from the UI, not configuration.yaml
+ZHA_QUIRKS = "woow_zha_quirks"  # not Home Assistant's own zha integration
+ZHA_QUIRKS_UI = (1, 4)  # the first woow_zha_quirks set up from the UI, not configuration.yaml
 
 
 @dataclass(frozen=True)
@@ -278,27 +278,32 @@ def replace_zha_quirks(config, custom_components, seed_components, trash):
     1.4 moved its setup from a configuration.yaml key to a config entry made in the UI.
     The add-on never adds the key, so a factory instance has 1.x but never loaded it.
     """
-    zha = custom_components / ZHA
-    if not zha.is_dir():
+    quirks = custom_components / ZHA_QUIRKS
+    if not quirks.is_dir():
         return
-    version, number = manifest_version(zha)
-    if number[0] != 1 or number >= ZHA_UI:
+    version, release = manifest_version(quirks)
+    if release[0] != 1 or release >= ZHA_QUIRKS_UI:
         return
-    seed_version, seed_number = manifest_version(seed_components / ZHA)
-    if seed_number < ZHA_UI:
+    seed_version, seed_release = manifest_version(seed_components / ZHA_QUIRKS)
+    if seed_release < ZHA_QUIRKS_UI:
         return
-    reason = (config_entry_reason(config, (ZHA,))
-              or yaml_key_reason(config, (ZHA,)))
+    reason = (config_entry_reason(config, (ZHA_QUIRKS,))
+              or yaml_key_reason(config, (ZHA_QUIRKS,)))
     if reason:
-        log(f"kept custom_components/{ZHA} {version}: in use ({reason}). To upgrade to "
-            f"{seed_version}, see the CHANGELOG.")
+        keep_zha_quirks(f"in use ({reason})", version)
         return
     try:
-        discard(zha, trash)
+        discard(quirks, trash)
     except OSError as err:
-        log(f"kept custom_components/{ZHA} {version}: could not remove it ({err}).")
+        keep_zha_quirks(f"could not remove it ({err})", version)
         return
-    log(f"replaced custom_components/{ZHA} {version} with {seed_version}: not in use")
+    log(f"replaced custom_components/{ZHA_QUIRKS} {version} with {seed_version}: not in use")
+
+
+def keep_zha_quirks(reason, version=""):
+    """Log why woow_zha_quirks is kept and where the manual upgrade is described."""
+    shown = f" {version}" if version else ""
+    log(f"kept custom_components/{ZHA_QUIRKS}{shown}: {reason}. To upgrade it, see the CHANGELOG.")
 
 
 def main(config, seed):
@@ -327,8 +332,7 @@ def main(config, seed):
     try:
         replace_zha_quirks(config, custom_components, seed / "custom_components", trash)
     except Exception as err:  # noqa: BLE001 - any doubt counts as in use
-        log(f"kept custom_components/{ZHA}: could not check ({err}). To upgrade it, "
-            "see the CHANGELOG.")
+        keep_zha_quirks(f"could not check ({err})")
 
 
 if __name__ == "__main__":
