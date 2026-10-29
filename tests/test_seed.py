@@ -45,7 +45,8 @@ runpy.run_path(sys.argv[0], run_name="__main__")
 """
 
 NEW = ["ha_permission_manager", "woow_ha_records", "woow_multi_protocol"]
-OTHER = ["hacs", "localtuya"]
+OTHER = ["hacs", "localtuya", "nodered", "pyscript", "woow_zha_quirks"]
+ZHA = "woow_zha_quirks"
 GROUP_OLD = {
     "permission": ["ha_permission_manager", "ha_area_control", "ha_label_control"],
     "records": ["ha_finance", "ha_asset_record", "ha_health_record", "ha_note_record"],
@@ -82,7 +83,7 @@ class SeedTest(unittest.TestCase):
         component(self.seed / "custom_components" / "woow_ha_records", "3.0.0")
         component(self.seed / "custom_components" / "woow_multi_protocol", "3.0.0")
         for name in OTHER:
-            component(self.seed / "custom_components" / name, "1.0.0")
+            component(self.seed / "custom_components" / name, "1.4.1" if name == ZHA else "1.0.0")
         frontend(self.seed / "custom_components" / "hacs")
         self.config.mkdir()
         self.python = tmp / "python"
@@ -147,6 +148,8 @@ class SeedTest(unittest.TestCase):
         self.run_seed()
         self.assertEqual(self.present(), sorted(NEW + OTHER))
         self.assertNotIn("removed", self.log)
+        self.assertEqual(self.marker(ZHA), "seed")
+        self.assertNotIn("replaced", self.log)
 
     def test_factory_state_installed_but_unused_is_replaced(self):
         # Box 4 as shipped: all 10 old folders, no config entries.
@@ -490,6 +493,110 @@ class SeedTest(unittest.TestCase):
         self.assertIn("kept the old records components: in use", self.log)
         self.assertNotIn("woow_ha_records", self.present())
         self.assertEqual(self.marker("ha_permission_manager"), "seed")
+
+    # --- woow_zha_quirks 1.x before 1.4 (the third exception) -------------
+
+    def test_unused_old_zha_quirks_is_replaced(self):
+        # Factory state: 1.2.0 seeded, never enabled (no YAML key, no entry).
+        component(self.cc / ZHA, "1.2.0", marker="old")
+        self.config_entries("sun", "backup")
+        (self.config / "configuration.yaml").write_text("default_config:\n")
+        self.run_seed()
+        self.assertEqual(self.marker(ZHA), "seed")
+        self.assertEqual(self.log.count(f"replaced custom_components/{ZHA}"), 1, self.log)
+
+    def assert_zha_kept(self, reason):
+        self.assertEqual(self.marker(ZHA), "old")
+        self.assertNotIn(f"replaced custom_components/{ZHA}", self.log)
+        self.assertIn(f"kept custom_components/{ZHA} 1.2.0: {reason}", self.log)
+        self.assertIn("see the CHANGELOG", self.log)
+
+    def test_old_zha_quirks_in_use_is_kept(self):
+        cases = {"configuration.yaml key woow_zha_quirks": lambda: self.yaml_key(ZHA),
+                 "config entry woow_zha_quirks": lambda: self.config_entries("sun", ZHA)}
+        for reason, arrange in cases.items():
+            with self.subTest(reason):
+                self.reset_config()
+                component(self.cc / ZHA, "1.2.0", marker="old")
+                arrange()
+                self.run_seed()
+                self.assert_zha_kept(f"in use ({reason})")
+
+    def test_zha_quirks_that_cannot_be_checked_is_kept(self):
+        def corrupt_entries():
+            (self.config / ".storage").mkdir()
+            (self.config / ".storage" / "core.config_entries").write_text('{"data": {"entr')
+
+        def unreadable_manifest():
+            (self.cc / ZHA / "manifest.json").write_text('{"version": ')
+
+        for label, arrange in (("core.config_entries", corrupt_entries),
+                               ("manifest.json", unreadable_manifest)):
+            with self.subTest(label):
+                self.reset_config()
+                component(self.cc / ZHA, "1.2.0", marker="old")
+                arrange()
+                self.run_seed()
+                self.assertEqual(self.marker(ZHA), "old")
+                self.assertIn(f"kept custom_components/{ZHA}: could not check", self.log)
+                self.assertIn("see the CHANGELOG", self.log)
+                # The rest of the seed still ran.
+                self.assertEqual(self.marker("nodered"), "seed")
+
+    def test_zha_quirks_yaml_key_variants(self):
+        reason = "in use (configuration.yaml key woow_zha_quirks)"
+        top_level = {"byte order mark": "﻿woow_zha_quirks:\n",
+                     "spaces before colon": "woow_zha_quirks :\n",
+                     "double quoted": '"woow_zha_quirks": {}\n',
+                     "single quoted": "'woow_zha_quirks':\n"}
+        not_top_level = {"commented key": "# woow_zha_quirks:\n",
+                         "commented key, no space": "#woow_zha_quirks:\n",
+                         "indented key": "homeassistant:\n  woow_zha_quirks:\n"}
+        for label, text in {**top_level, **not_top_level}.items():
+            with self.subTest(label):
+                self.reset_config()
+                component(self.cc / ZHA, "1.2.0", marker="old")
+                (self.config / "configuration.yaml").write_text(text, encoding="utf-8")
+                self.run_seed()
+                if label in top_level:
+                    self.assert_zha_kept(reason)
+                else:
+                    self.assertEqual(self.marker(ZHA), "seed")
+
+    def test_zha_quirks_from_1_4_or_not_1_x_is_left_alone(self):
+        for version in ("1.4.0", "1.4.1", "1.10.0", "2.0.0", "0.9.0"):
+            with self.subTest(version):
+                self.reset_config()
+                component(self.cc / ZHA, version, marker="user")
+                self.run_seed()
+                self.assertEqual(self.marker(ZHA), "user")
+                self.assertNotIn(ZHA, self.log)
+
+    def test_old_zha_quirks_is_not_replaced_by_a_seed_before_1_4(self):
+        (self.seed / "custom_components" / ZHA / "manifest.json").write_text(
+            json.dumps({"domain": ZHA, "version": "1.3.0"}))
+        component(self.cc / ZHA, "1.2.0", marker="old")
+        self.run_seed()
+        self.assertEqual(self.marker(ZHA), "old")
+        self.assertNotIn(f"replaced custom_components/{ZHA}", self.log)
+
+    def test_old_zha_quirks_that_cannot_be_moved_out_is_kept_and_ha_starts(self):
+        component(self.cc / ZHA, "1.2.0", marker="old")
+        self.faults = f"{ZHA}>out"
+        self.run_seed()
+        self.assertEqual(self.marker(ZHA), "old")
+        self.assertIn(f"kept custom_components/{ZHA} 1.2.0: could not remove it", self.log)
+
+    def test_existing_nodered_and_pyscript_are_never_replaced(self):
+        component(self.cc / "nodered", "4.2.3", marker="user")
+        component(self.cc / "pyscript", "2.0.1", marker="user")
+        before = {name: (self.cc / name / "manifest.json").read_bytes()
+                  for name in ("nodered", "pyscript")}
+        self.run_seed()
+        for name, manifest in before.items():
+            self.assertEqual(self.marker(name), "user")
+            self.assertEqual((self.cc / name / "manifest.json").read_bytes(), manifest)
+        self.assertEqual(self.marker(ZHA), "seed")
 
 
 if __name__ == "__main__":

@@ -13,10 +13,15 @@ Each group is handled on its own: an error in one keeps only that group.
 It then removes a hacs folder that has no hacs_frontend/ (replace_hacs()), so the
 copy seeds the complete hacs; an error there keeps hacs as it is.
 
+Last, it removes a woow_zha_quirks before 1.4 that is not in use (replace_zha_quirks()),
+so the copy seeds the seed's 1.4 or later: a config entry of woow_zha_quirks, or a
+top-level configuration.yaml key, counts as in use. An error, or a manifest version
+that cannot be read, keeps it as it is.
+
 Only component code folders are ever deleted; config entries, .storage and YAML
 are never touched. A missing core.config_entries means Home Assistant never ran
 with these components, so it does not count as in use. Log lines go to stderr.
-See the CHANGELOG entries that replaced the split components and hacs.
+See the CHANGELOG entries that replaced the split components, hacs and woow_zha_quirks.
 
 Usage: python seed_groups.py <config_dir> <seed_dir>
 """
@@ -32,6 +37,8 @@ TRASH = ".woow_seed_removed"  # under /config, outside custom_components
 DONE = ".done"  # suffix of a group's trash folder once all its moves succeeded
 HACS = "hacs"
 FRONTEND = "hacs_frontend"  # built at HACS release time; not in the repository source
+ZHA = "woow_zha_quirks"
+ZHA_UI = (1, 4)  # the first woow_zha_quirks set up from the UI, not configuration.yaml
 
 
 @dataclass(frozen=True)
@@ -91,14 +98,11 @@ def in_use_reason(group, config, domains):
     file named after one; a non-empty old data directory; a top-level
     configuration.yaml key.
     """
-    storage = config / ".storage"
-    entries_file = storage / "core.config_entries"
-    if entries_file.exists():
-        entries = json.loads(entries_file.read_text(encoding="utf-8"))["data"]["entries"]
-        for entry in entries:
-            if entry.get("domain") in domains:
-                return f"config entry {entry['domain']}"
+    reason = config_entry_reason(config, domains)
+    if reason:
+        return reason
 
+    storage = config / ".storage"
     if storage.is_dir():
         for path in sorted(storage.iterdir()):
             if path.name.startswith(domains):
@@ -109,6 +113,28 @@ def in_use_reason(group, config, domains):
         if (path.is_dir() and any(path.iterdir())) or (path.is_file() and path.stat().st_size):
             return f"/config/{name} not empty"
 
+    return yaml_key_reason(config, domains)
+
+
+def config_entry_reason(config, domains):
+    """'config entry <domain>' if core.config_entries has one of the domains, else None.
+
+    Raises when the file exists but cannot be read.
+    """
+    entries_file = config / ".storage" / "core.config_entries"
+    if entries_file.exists():
+        entries = json.loads(entries_file.read_text(encoding="utf-8"))["data"]["entries"]
+        for entry in entries:
+            if entry.get("domain") in domains:
+                return f"config entry {entry['domain']}"
+    return None
+
+
+def yaml_key_reason(config, domains):
+    """'configuration.yaml key <domain>' if one of the domains is a top-level key, else None.
+
+    Raises when the file exists but cannot be read.
+    """
     configuration = config / "configuration.yaml"
     if configuration.exists():
         for line in configuration.read_text(encoding="utf-8-sig").splitlines():
@@ -226,12 +252,53 @@ def replace_hacs(custom_components, seed_components, trash):
         return
     if not (seed_components / HACS / FRONTEND).is_dir():
         return
-    done = trash / (HACS + DONE)
+    discard(hacs, trash)
+    log(f"replaced custom_components/{HACS}: it has no {FRONTEND}/, so HACS could not load")
+
+
+def discard(folder, trash):
+    """Move a component folder out to the trash, then delete it: removed whole or not at all."""
+    done = trash / (folder.name + DONE)
     shutil.rmtree(done, ignore_errors=True)
     trash.mkdir(exist_ok=True)
-    hacs.rename(done)
-    log(f"replaced custom_components/{HACS}: it has no {FRONTEND}/, so HACS could not load")
+    folder.rename(done)
     shutil.rmtree(done, ignore_errors=True)
+
+
+def manifest_version(path):
+    """A component folder's manifest.json version, as text and as (major, minor)."""
+    text = str(json.loads((path / "manifest.json").read_text(encoding="utf-8"))["version"])
+    major, minor = text.split(".")[:2]
+    return text, (int(major), int(minor))
+
+
+def replace_zha_quirks(config, custom_components, seed_components, trash):
+    """Remove a woow_zha_quirks before 1.4 that is not in use, so the copy seeds the seed's.
+
+    1.4 moved its setup from a configuration.yaml key to a config entry made in the UI.
+    The add-on never adds the key, so a factory instance has 1.x but never loaded it.
+    """
+    zha = custom_components / ZHA
+    if not zha.is_dir():
+        return
+    version, number = manifest_version(zha)
+    if number[0] != 1 or number >= ZHA_UI:
+        return
+    seed_version, seed_number = manifest_version(seed_components / ZHA)
+    if seed_number < ZHA_UI:
+        return
+    reason = (config_entry_reason(config, (ZHA,))
+              or yaml_key_reason(config, (ZHA,)))
+    if reason:
+        log(f"kept custom_components/{ZHA} {version}: in use ({reason}). To upgrade to "
+            f"{seed_version}, see the CHANGELOG.")
+        return
+    try:
+        discard(zha, trash)
+    except OSError as err:
+        log(f"kept custom_components/{ZHA} {version}: could not remove it ({err}).")
+        return
+    log(f"replaced custom_components/{ZHA} {version} with {seed_version}: not in use")
 
 
 def main(config, seed):
@@ -257,6 +324,11 @@ def main(config, seed):
         replace_hacs(custom_components, seed / "custom_components", trash)
     except Exception as err:  # noqa: BLE001 - any doubt keeps hacs as it is
         log(f"could not replace custom_components/{HACS} ({err}); kept it as it is.")
+    try:
+        replace_zha_quirks(config, custom_components, seed / "custom_components", trash)
+    except Exception as err:  # noqa: BLE001 - any doubt counts as in use
+        log(f"kept custom_components/{ZHA}: could not check ({err}). To upgrade it, "
+            "see the CHANGELOG.")
 
 
 if __name__ == "__main__":
