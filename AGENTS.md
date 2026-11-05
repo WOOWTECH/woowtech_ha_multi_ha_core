@@ -23,15 +23,16 @@ approval). This repo's own `docs/adr/` is numbered separately.
    `woow_ha_core_1/upgrade-check/`): `seed` writes data on the old version,
    `verify` checks it on this PR's version. Their interface (environment, JSON
    report) is in the Woow_HA_App_Store README, "第 2 類 升級測試", paragraph
-   "資料檢查（#138）". Keep the hooks executable (`git update-index --chmod=+x`),
-   with LF endings and a `#!` of python3 or busybox sh only (no bash): they run
-   in the Store's python:3.12-alpine mock Supervisor container, so never
-   `docker run` from them. A hook must not leave background processes running
-   when it exits, and a hook file must not be a symlink to anything outside
-   `upgrade-check/` (only that directory is mounted). An optional
-   `woow_ha_core_N/upgrade-check/settings.yaml` sets `startup_timeout`,
-   `stable_seconds` and `hook_timeout` (positive integer seconds);
-   `hook_timeout` defaults to 600 and covers the whole `docker exec` of a hook.
+   "資料檢查（#138）". Keep the hooks executable
+   (`git update-index --chmod=+x`), with LF endings and a `#!` of python3 or
+   busybox sh only (no bash): they run in the Store's python:3.12-alpine mock
+   Supervisor container, so never `docker run` from them. A hook must not leave
+   background processes running when it exits, and a hook file must not be a
+   symlink to anything outside `upgrade-check/` (only that directory is
+   mounted). An optional `woow_ha_core_N/upgrade-check/settings.yaml` sets
+   `startup_timeout`, `stable_seconds` and `hook_timeout` (positive integer
+   seconds); `hook_timeout` defaults to 600 and covers the whole `docker exec`
+   of a hook.
 3. **Breaking changes must be declared in `upgrade-notes.yaml`** next to each
    addon's `config.yaml` (for example `woow_ha_core_1/upgrade-notes.yaml`).
    Create the file only when the upgrade comparison asks for it; copy `change`
