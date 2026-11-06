@@ -83,10 +83,11 @@ jobs:
   # configuration changes block it (see AGENTS.md item 3). These addons are
   # built on the device: the upgrade test (#144) rebuilds, for amd64 inside
   # the Store workflow, each changed addon at its latest Release and at this
-  # PR, so no image_artifact is passed; there is no SBOM to hand over, and
-  # the vulnerability comparison is #90. No needs:, so a PR that changes no
-  # version passes in seconds. On push it passes at once; a push that changes
-  # only docs (paths-ignore above) does not run it.
+  # PR, so no image_artifact is passed. The vulnerability comparison (category
+  # 4, pipeline #146) runs on those rebuilt images, so there is no SBOM to
+  # hand over. No needs:, so a PR that changes no version passes in seconds.
+  # On push it passes at once; a push that changes only docs (paths-ignore
+  # above) does not run it.
   upgrade-comparison:
     name: Upgrade comparison
     permissions:
