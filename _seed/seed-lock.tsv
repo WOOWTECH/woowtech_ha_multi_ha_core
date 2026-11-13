@@ -4,7 +4,7 @@ browser_mod	thomasloven/hass-browser_mod	v2.13.3	d09bfed	2.13.3
 climate_template	WOOWTECH/Woow_ha_entities_template	1bc1c0ce6cfb4df256bab20dd8969ed8399a469c	1bc1c0c	1.4.1
 config_editor	junkfix/config-editor	f4a425373a957f04eac7eb292b56e08e9d272fa2	f4a4253	5.0.0
 cover_rf_time_based	nagyrobi/home-assistant-custom-components-cover-rf-time-based	eb0f70ba045b431e77b72336b6f7236e7a6658a7	eb0f70b	1.1.3
-ha_mcp_tools	WOOWTECH/Woow_ha_ai_mcp	83b3f4f2e2f8d7a742dc81833e208944eb83e68e	83b3f4f	1.2.2
+ha_mcp_tools	WOOWTECH/Woow_ha_ai_mcp	01f8de3e22c61a57fa7d7e54337131e9805d8a94	01f8de3	1.2.4
 ha_permission_manager	WOOWTECH/Woow_ha_permission_control	215ed83d0ff23f0c39992fa979f3b02314d12663	215ed83	2.0.15
 hacs	hacs/integration	2.0.5	sha256:97be6b824a4f38e683728cc6dd72367f6b8bad0a43428b1b3b987a3087adf413	2.0.5
 localtuya	rospogrigio/localtuya	59c95cd06c2696afc98f6bc52d5fa060f3c517da	59c95cd	5.2.3
